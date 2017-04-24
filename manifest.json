@@ -7,7 +7,6 @@
 	},
 	
 	"permissions": [
-		"*://localhost/*",
 		"*://ritstar.com/*",
 		"*://docs.google.com/forms/*"
 	],
