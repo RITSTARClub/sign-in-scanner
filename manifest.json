@@ -1,0 +1,32 @@
+{
+	"manifest_version": 2,
+	"name": "STAR ID Card Scanner",
+	"version": "1.0",
+	"description": "Scans STAR ID cards for standard sign in forms.",
+	"icons": {
+	},
+	
+	"permissions": [
+		"*://localhost/*",
+		"*://ritstar.com/*",
+		"*://docs.google.com/forms/*"
+	],
+	
+	"content_scripts": [{
+		"matches": [
+			"*://docs.google.com/forms/*"
+		],
+		"css": [
+			"scanner.css"
+		],
+		"js": [
+			"instascan.min.js",
+			"scanner.js"
+		]
+	}],
+	
+	"background": {
+		"scripts": ["background.js"],
+		"persistent": false
+	}
+}
