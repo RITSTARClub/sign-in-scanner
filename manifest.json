@@ -4,6 +4,7 @@
 	"version": "1.0",
 	"description": "Scans STAR ID cards for standard sign in forms.",
 	"icons": {
+		"32": "icon.png"
 	},
 	
 	"permissions": [
