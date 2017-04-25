@@ -1,3 +1,5 @@
+'use strict';
+
 var CONSOLE_PREFIX = 'STAR Scanner: ',
 	MESSAGE_LOADING = 'Loading ID scanner...',
 	MESSAGE_READY = '&nwarr; Scan your STAR ID card<br />with the webcam',
@@ -6,7 +8,8 @@ var CONSOLE_PREFIX = 'STAR Scanner: ',
 	MESSAGE_NO_CAMERAS = 'ERROR: No cameras found',
 	MESSAGE_API_ERROR = 'ERROR: Could not load member information';
 
-var scanContainer,
+var running = false,
+	scanContainer,
 	scanPreview,
 	scanMessage,
 	scanner,
@@ -81,7 +84,7 @@ function handleScan(content) {
 	
 	var memberId = content.replace('http://ritstar.com/members/', '');
 	
-	chrome.runtime.sendMessage({ memberId: memberId }, function (response) {
+	chrome.runtime.sendMessage({ type: 'api', memberId: memberId }, function (response) {
 		if (response.status === 200) {
 			try {
 				populateForm(JSON.parse(response.responseText));
@@ -109,4 +112,9 @@ function populateForm(member) {
 	}
 }
 
-init();
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+	if (request.type === 'init' && !running) {
+		running = true;
+		init();
+	}
+});

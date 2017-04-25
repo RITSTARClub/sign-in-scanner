@@ -1,13 +1,15 @@
 {
 	"manifest_version": 2,
 	"name": "STAR ID Card Scanner",
-	"version": "1.0",
+	"version": "1.0.1",
 	"description": "Scans STAR ID cards for standard sign in forms.",
 	"icons": {
 		"32": "icon.png"
 	},
 	
 	"permissions": [
+		"activeTab",
+		"declarativeContent",
 		"*://ritstar.com/*",
 		"*://docs.google.com/forms/*"
 	],
@@ -28,5 +30,9 @@
 	"background": {
 		"scripts": ["background.js"],
 		"persistent": false
+	},
+	
+	"page_action": {
+		"default_icon": "icon.png"
 	}
 }
