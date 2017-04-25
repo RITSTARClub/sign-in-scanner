@@ -103,12 +103,20 @@ function populateForm(member) {
 	if (member.name) {
 		nameInput.value = member.name;
 		nameInput.parentElement.parentElement.parentElement.parentElement.classList.add('hasValue');
+	} else {
+		nameInput.value = '';
+		nameInput.parentElement.parentElement.parentElement.parentElement.classList.remove('hasValue');
 	}
+	
 	dceInput.value = member.dce ? member.dce : 'abc1234';
 	dceInput.parentElement.parentElement.parentElement.parentElement.classList.add('hasValue');
+	
 	if (member.email) {
 		emailInput.value = member.email;
 		emailInput.parentElement.parentElement.parentElement.parentElement.classList.add('hasValue');
+	} else {
+		emailInput.value = '';
+		emailInput.parentElement.parentElement.parentElement.parentElement.classList.remove('hasValue');
 	}
 }
 
