@@ -128,6 +128,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 		if (running) {
 			// Remove the current page from the list of known sign-in forms.
 			chrome.storage.sync.get(FORM_URLS_KEY, (items) => {
+				if (typeof items[FORM_URLS_KEY] === 'undefined') {
+					items[FORM_URLS_KEY] = [];
+				}
 				var index = items[FORM_URLS_KEY].indexOf(location.host + location.pathname);
 				if (index !== -1) {
 					items[FORM_URLS_KEY].splice(index, 1);
@@ -137,6 +140,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 		} else {
 			// Add the current page to the list of known sign-in forms.
 			chrome.storage.sync.get(FORM_URLS_KEY, (items) => {
+				if (typeof items[FORM_URLS_KEY] === 'undefined') {
+					items[FORM_URLS_KEY] = [];
+				}
 				if (items[FORM_URLS_KEY].indexOf(location.host + location.pathname) === -1) {
 					items[FORM_URLS_KEY].push(location.host + location.pathname);
 					chrome.storage.sync.set(items);
@@ -150,6 +156,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 // Check whether current page is a known sign-in form.
 chrome.storage.sync.get(FORM_URLS_KEY, (items) => {
+	if (typeof items[FORM_URLS_KEY] === 'undefined') {
+		items[FORM_URLS_KEY] = [];
+	}
 	if (items[FORM_URLS_KEY].indexOf(location.host + location.pathname) !== -1) {
 		// Start the scanner.
 		init();
