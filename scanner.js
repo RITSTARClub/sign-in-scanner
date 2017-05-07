@@ -6,7 +6,8 @@ var CONSOLE_PREFIX = 'STAR Scanner: ',
 	MESSAGE_SCANNED = 'Loading member data...',
 	MESSAGE_CAMERA_ACCESS_ERROR = 'ERROR: Could not access cameras',
 	MESSAGE_NO_CAMERAS = 'ERROR: No cameras found',
-	MESSAGE_API_ERROR = 'ERROR: Could not load member information';
+	MESSAGE_API_ERROR = 'ERROR: Could not load member information',
+	FORM_URLS_KEY = 'formURLs';
 
 var running = false,
 	scanContainer,
@@ -27,6 +28,8 @@ function init() {
 	console.log(CONSOLE_PREFIX + 'Finished init\'ing scanner.');
 	getFormElements();
 	console.log(CONSOLE_PREFIX + 'Finished getting form elements.');
+	
+	running = true;
 }
 
 function initDOM() {
@@ -121,8 +124,34 @@ function populateForm(member) {
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-	if (request.type === 'init' && !running) {
-		running = true;
+	if (request.type === 'init') {
+		if (running) {
+			// Remove the current page from the list of known sign-in forms.
+			chrome.storage.sync.get(FORM_URLS_KEY, (items) => {
+				var index = items[FORM_URLS_KEY].indexOf(location.host + location.pathname);
+				if (index !== -1) {
+					items[FORM_URLS_KEY].splice(index, 1);
+					chrome.storage.sync.set(items);
+				}
+			});
+		} else {
+			// Add the current page to the list of known sign-in forms.
+			chrome.storage.sync.get(FORM_URLS_KEY, (items) => {
+				if (items[FORM_URLS_KEY].indexOf(location.host + location.pathname) === -1) {
+					items[FORM_URLS_KEY].push(location.host + location.pathname);
+					chrome.storage.sync.set(items);
+				}
+			});
+			// Start the scannner.
+			init();
+		}
+	}
+});
+
+// Check whether current page is a known sign-in form.
+chrome.storage.sync.get(FORM_URLS_KEY, (items) => {
+	if (items[FORM_URLS_KEY].indexOf(location.host + location.pathname) !== -1) {
+		// Start the scanner.
 		init();
 	}
 });
