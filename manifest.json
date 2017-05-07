@@ -10,6 +10,7 @@
 	"permissions": [
 		"activeTab",
 		"declarativeContent",
+		"storage",
 		"*://ritstar.com/*",
 		"*://docs.google.com/forms/*"
 	],
