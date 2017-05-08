@@ -18,7 +18,7 @@
 	width: 192px;
 	height: 192px;
 	margin: -4px auto 0;
-	transform: scale(-1.6, 1.6) !important;
+	transform: scale(-1.6, 1.6);
 }
 
 #star-scan-message {

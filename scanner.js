@@ -76,7 +76,11 @@ function removeDOM() {
 }
 
 function initScanner() {
-	scanner = new Instascan.Scanner({ video: scanPreview });
+	scanner = new Instascan.Scanner({
+		video: scanPreview,
+		backgroundScan: false,
+		mirror: false // Mirroring is handled by our own CSS.
+	});
 	scanner.addListener('scan', handleScan);
 }
 function enableScanner() {
