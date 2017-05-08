@@ -9,7 +9,8 @@ var CONSOLE_PREFIX = 'STAR Scanner: ',
 	MESSAGE_API_ERROR = 'ERROR: Could not load member information',
 	FORM_URLS_KEY = 'formURLs';
 
-var running = false,
+var initd = false, /** Whether the scanner has been init'd */
+	running = false, /** Whether the scanner is currently running */
 	scanContainer,
 	scanPreview,
 	scanMessage,
@@ -29,7 +30,28 @@ function init() {
 	getFormElements();
 	console.log(CONSOLE_PREFIX + 'Finished getting form elements.');
 	
+	initd = true;
+}
+function enable() {
+	if (running) {
+		return;
+	}
+	if (!initd) {
+		init();
+	}
+	addDOM();
+	enableScanner();
 	running = true;
+	console.log(CONSOLE_PREFIX + 'Enabled.');
+}
+function disable() {
+	if (!running) {
+		return;
+	}
+	removeDOM();
+	disableScanner();
+	running = false;
+	console.log(CONSOLE_PREFIX + 'Disabled.');
 }
 
 function initDOM() {
@@ -45,13 +67,19 @@ function initDOM() {
 	
 	scanContainer.appendChild(scanPreview);
 	scanContainer.appendChild(scanMessage);
+}
+function addDOM() {
 	document.body.appendChild(scanContainer);
+}
+function removeDOM() {
+	document.body.removeChild(scanContainer);
 }
 
 function initScanner() {
 	scanner = new Instascan.Scanner({ video: scanPreview });
 	scanner.addListener('scan', handleScan);
-	
+}
+function enableScanner() {
 	Instascan.Camera.getCameras().then((cameras) => {
 		if (cameras.length > 0) {
 			scanner.start(cameras[0]).then(() => {
@@ -64,6 +92,9 @@ function initScanner() {
 		console.error(CONSOLE_PREFIX + e);
 		scanMessage.innerHTML = MESSAGE_CAMERA_ACCESS_ERROR;
 	});
+}
+function disableScanner() {
+	scanner.stop();
 }
 
 function getFormElements() {
@@ -140,6 +171,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 				// Tell the background page to update the page action.
 				chrome.runtime.sendMessage({ type: 'showDisabled' });
 			});
+			// Stop the scanner.
+			disable();
 		} else {
 			// Add the current page to the list of known sign-in forms.
 			chrome.storage.sync.get(FORM_URLS_KEY, (items) => {
@@ -155,7 +188,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 				chrome.runtime.sendMessage({ type: 'showEnabled' });
 			});
 			// Start the scannner.
-			init();
+			enable();
 		}
 	}
 });
@@ -172,6 +205,6 @@ chrome.storage.sync.get(FORM_URLS_KEY, (items) => {
 		// Tell the background page to update the page action.
 		chrome.runtime.sendMessage({ type: 'showEnabled' });
 		// Start the scanner.
-		init();
+		enable();
 	}
 });
