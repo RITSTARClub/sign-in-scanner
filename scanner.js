@@ -124,7 +124,7 @@ function populateForm(member) {
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-	if (request.type === 'init') {
+	if (request.type === 'toggle') {
 		if (running) {
 			// Remove the current page from the list of known sign-in forms.
 			chrome.storage.sync.get(FORM_URLS_KEY, (items) => {
@@ -136,6 +136,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 					items[FORM_URLS_KEY].splice(index, 1);
 					chrome.storage.sync.set(items);
 				}
+				
+				// Tell the background page to update the page action.
+				chrome.runtime.sendMessage({ type: 'showDisabled' });
 			});
 		} else {
 			// Add the current page to the list of known sign-in forms.
@@ -147,6 +150,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 					items[FORM_URLS_KEY].push(location.host + location.pathname);
 					chrome.storage.sync.set(items);
 				}
+				
+				// Tell the background page to update the page action.
+				chrome.runtime.sendMessage({ type: 'showEnabled' });
 			});
 			// Start the scannner.
 			init();
@@ -159,7 +165,12 @@ chrome.storage.sync.get(FORM_URLS_KEY, (items) => {
 	if (typeof items[FORM_URLS_KEY] === 'undefined') {
 		items[FORM_URLS_KEY] = [];
 	}
-	if (items[FORM_URLS_KEY].indexOf(location.host + location.pathname) !== -1) {
+	if (items[FORM_URLS_KEY].indexOf(location.host + location.pathname) === -1) {
+		// Tell the background page to update the page action.
+		chrome.runtime.sendMessage({ type: 'showDisabled' });
+	} else {
+		// Tell the background page to update the page action.
+		chrome.runtime.sendMessage({ type: 'showEnabled' });
 		// Start the scanner.
 		init();
 	}
