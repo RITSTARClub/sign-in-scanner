@@ -78,8 +78,9 @@ function removeDOM() {
 function initScanner() {
 	scanner = new Instascan.Scanner({
 		video: scanPreview,
-		backgroundScan: false,
-		mirror: false // Mirroring is handled by our own CSS.
+		backgroundScan: false, // Do not scan when tab is unfocused.
+		mirror: false, // Mirroring is handled by our own CSS.
+		refractoryPeriod: 2000 // Time in milliseconds before the QR code will be recognized again.
 	});
 	scanner.addListener('scan', handleScan);
 }
