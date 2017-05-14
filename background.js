@@ -1,7 +1,7 @@
 'use strict';
 
 var API_KEY = 'FILL_THIS_IN', // Do not push the API key to the repo!
-	FORM_URL_REGEX = '^https://docs\.google\.com/forms/.+/viewform(\?.*)?$';
+	FORM_URL_REGEX = '^https://docs\.google\.com/forms/.+/viewform([?].*)?$';
 
 // Set the rule when the extension is installed or upgraded.
 chrome.runtime.onInstalled.addListener(function() {
