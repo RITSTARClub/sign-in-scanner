@@ -1,12 +1,15 @@
 'use strict';
 
 var CONSOLE_PREFIX = 'STAR Scanner: ',
-	MESSAGE_LOADING = 'Loading ID scanner...',
-	MESSAGE_READY = '&nwarr; Scan your STAR ID card<br />with the webcam',
-	MESSAGE_SCANNED = 'Loading member data...',
-	MESSAGE_CAMERA_ACCESS_ERROR = 'ERROR: Could not access cameras',
-	MESSAGE_NO_CAMERAS = 'ERROR: No cameras found',
-	MESSAGE_API_ERROR = 'ERROR: Could not load member information',
+	MESSAGE_INITING = 'Loading ID scanner...',
+	MESSAGE_READY = '&nwarr; Scan your STAR ID card<br />with the webcam.',
+	MESSAGE_LOADING = 'Loading member data...',
+	MESSAGE_LOADED = 'Loaded member data.<br />Scan again to submit.',
+	MESSAGE_CAMERA_ACCESS_ERROR = 'ERROR: Could not access cameras.',
+	MESSAGE_NO_CAMERAS = 'ERROR: No cameras found.',
+	MESSAGE_API_ERROR = 'ERROR: Could not load member information.',
+	DOUBLE_SCAN_WAIT = 1500, /** Minimum time between first and second scan */
+	DOUBLE_SCAN_TIMEOUT = 7000, /** Time to wait for a double-scan before resetting */
 	FORM_URLS_KEY = 'formURLs';
 
 var initd = false, /** Whether the scanner has been init'd */
@@ -19,7 +22,9 @@ var initd = false, /** Whether the scanner has been init'd */
 	namePlaceholder,
 	dceInput,
 	dcePlaceholder,
-	emailInput;
+	emailInput,
+	lastScanned = '', /** The last scanned ID */
+	doubleScanTimer; /** Stores the timeout created with setTimeout */
 	
 
 function init() {
@@ -50,6 +55,7 @@ function disable() {
 	}
 	removeDOM();
 	disableScanner();
+	lastScanned = '';
 	running = false;
 	console.log(CONSOLE_PREFIX + 'Disabled.');
 }
@@ -63,7 +69,7 @@ function initDOM() {
 	
 	scanMessage = document.createElement('p');
 	scanMessage.id = 'star-scan-message';
-	scanMessage.innerHTML = MESSAGE_LOADING;
+	scanMessage.innerHTML = MESSAGE_INITING;
 	
 	scanContainer.appendChild(scanPreview);
 	scanContainer.appendChild(scanMessage);
@@ -80,7 +86,7 @@ function initScanner() {
 		video: scanPreview,
 		backgroundScan: false, // Do not scan when tab is unfocused.
 		mirror: false, // Mirroring is handled by our own CSS.
-		refractoryPeriod: 2000 // Time in milliseconds before the QR code will be recognized again.
+		refractoryPeriod: DOUBLE_SCAN_WAIT // Time in milliseconds before the QR code will be recognized again.
 	});
 	scanner.addListener('scan', handleScan);
 }
@@ -126,8 +132,19 @@ function handleScan(content) {
 	chrome.runtime.sendMessage({ type: 'api', memberId: memberId }, function (response) {
 		if (response.status === 200) {
 			try {
-				populateForm(JSON.parse(response.responseText));
-				scanMessage.innerHTML = MESSAGE_READY;
+				if (memberId === lastScanned) {
+					// If the ID card was double-scanned, submit the form.
+					document.getElementsByTagName('form')[0].submit();
+				} else {
+					// Otherwise, populate the form with the new member data.
+					populateForm(JSON.parse(response.responseText));
+					scanMessage.innerHTML = MESSAGE_LOADED;
+					lastScanned = memberId;
+					doubleScanTimer = setTimeout(() => {
+						scanMessage.innerHTML = MESSAGE_READY;
+						lastScanned = '';
+					}, DOUBLE_SCAN_TIMEOUT);
+				}
 			} catch (e) {
 				scanMessage.innerHTML = MESSAGE_API_ERROR;
 			}
@@ -135,7 +152,7 @@ function handleScan(content) {
 			scanMessage.innerHTML = MESSAGE_API_ERROR;
 		}
 	});
-	scanMessage.innerHTML = MESSAGE_SCANNED;
+	scanMessage.innerHTML = MESSAGE_LOADING;
 }
 
 function populateForm(member) {
